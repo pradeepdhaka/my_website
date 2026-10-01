@@ -158,59 +158,7 @@
     <section id="projects" class="section section-alt">
         <div class="container">
             <h2 class="section-title">Projects</h2>
-            <div class="projects-grid">
-                <div class="project-card">
-                    <div class="project-image">Conversational Agent</div>
-                    <div class="project-content">
-                        <h3>Conversational Steering Agent</h3>
-                        <p>Gemini Flash 2.5 agent fine-tuned with labeled playbook examples. Reached 90% accuracy in ADK testing and migrates legacy Azure and Genesys call center workflows to GCP.</p>
-                        <div class="project-tags">
-                            <span>Gemini Flash 2.5</span>
-                            <span>ADK</span>
-                            <span>GCP</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-image">Lapse Patient Analytics</div>
-                    <div class="project-content">
-                        <h3>Lapse Patient Analytics</h3>
-                        <p>Segmentation and predictive models that flag high-risk lapse groups, enabling targeted interventions and retention strategies for patients.</p>
-                        <div class="project-tags">
-                            <span>Python</span>
-                            <span>Machine Learning</span>
-                            <span>Segmentation</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-image">Feature Store</div>
-                    <div class="project-content">
-                        <h3>Healthcare Feature Store</h3>
-                        <p>Parameterized EHR features and cost metrics (admissions per 1000, PMPM) deployed as Databricks tables, with automated feature generation.</p>
-                        <div class="project-tags">
-                            <span>PySpark</span>
-                            <span>Spark SQL</span>
-                            <span>Databricks</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="project-card">
-                    <div class="project-image">IPL Score Prediction</div>
-                    <div class="project-content">
-                        <h3>IPL Innings Score Prediction</h3>
-                        <p>XGBoost model that predicts a team's final score after 15 overs, using death-over features. Evaluated on MAE and R² and deployed on Databricks for batch predictions.</p>
-                        <div class="project-tags">
-                            <span>XGBoost</span>
-                            <span>Python</span>
-                            <span>Databricks</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <div class="projects-grid" id="projectsGrid"></div>
         </div>
     </section>
 
@@ -288,7 +236,79 @@
         <p>&copy; 2025 Pradeep Dhaka. All rights reserved.</p>
     </footer>
 
+    <div class="modal" id="projectModal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-dialog">
+            <button class="modal-close" id="modalClose" aria-label="Close project details">&times;</button>
+            <div class="modal-visual" id="modalVisual"></div>
+            <div class="modal-body">
+                <h3 id="modalTitle"></h3>
+                <p class="lead" id="modalLead"></p>
+                <h4>Overview</h4><ul id="modalOverview"></ul>
+                <h4>Tech stack</h4><div class="project-tags" id="modalStack"></div>
+            </div>
+        </div>
+    </div>
+
     <script>
+        const W = 'stroke="#fff" fill="none" stroke-linecap="round" stroke-linejoin="round"';
+        const box = (x,y,w,h,t) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="8" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.7)"/><text x="${x+w/2}" y="${y+h/2+4}" fill="#fff" font-size="11" text-anchor="middle" font-family="Segoe UI,sans-serif">${t}</text>`;
+        const arrow = (x1,y1,x2,y2) => `<path d="M${x1} ${y1}L${x2} ${y2}" ${W} stroke-width="1.5" stroke-opacity=".7"/>`;
+        const svg = c => `<svg viewBox="0 0 300 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">${c}</svg>`;
+        const GFX = {
+            britai: svg(box(20,20,70,34,'Question')+box(115,20,70,34,'GPT Agent')+box(210,20,70,34,'SQL + Check')+box(210,115,70,34,'Redshift')+box(115,115,70,34,'Tables/Charts')+box(20,115,70,34,'Postgres Log')+arrow(90,37,115,37)+arrow(185,37,210,37)+arrow(245,54,245,115)+arrow(210,132,185,132)+arrow(115,132,90,132)+'<path d="M150 54V115" '+W+' stroke-width="1.5" stroke-dasharray="3 4" stroke-opacity=".6"/>'),
+            agent: svg(box(20,25,95,34,'Customer intent')+box(185,25,95,34,'Gemini Flash 2.5')+box(100,110,100,34,'GCP + ADK tests')+arrow(115,42,185,42)+arrow(232,59,170,110)+arrow(68,59,120,110)+'<circle cx="250" cy="125" r="22" '+W+' stroke-width="3"/><text x="250" y="130" fill="#fff" font-size="13" text-anchor="middle" font-weight="700">90%</text>'),
+            lapse: svg('<g fill="rgba(255,255,255,0.55)"><circle cx="70" cy="60" r="6"/><circle cx="90" cy="75" r="6"/><circle cx="60" cy="85" r="6"/><circle cx="80" cy="50" r="6"/></g><g fill="rgba(255,255,255,0.85)"><circle cx="190" cy="50" r="6"/><circle cx="215" cy="65" r="6"/><circle cx="200" cy="85" r="6"/></g><g fill="rgba(255,255,255,0.3)"><circle cx="130" cy="125" r="6"/><circle cx="155" cy="135" r="6"/><circle cx="110" cy="140" r="6"/><circle cx="240" cy="130" r="6"/></g><ellipse cx="75" cy="68" rx="32" ry="30" '+W+' stroke-opacity=".6" stroke-dasharray="4 4"/><ellipse cx="203" cy="68" rx="30" ry="30" '+W+' stroke-opacity=".9" stroke-dasharray="4 4"/>'),
+            store: svg(box(20,20,80,30,'EHR data')+box(110,20,80,30,'Features')+box(200,20,80,30,'Databricks')+'<g fill="rgba(255,255,255,0.4)"><rect x="40" y="90" width="22" height="55" rx="3"/><rect x="75" y="75" width="22" height="70" rx="3"/><rect x="110" y="100" width="22" height="45" rx="3"/><rect x="145" y="65" width="22" height="80" rx="3"/><rect x="180" y="85" width="22" height="60" rx="3"/><rect x="215" y="70" width="22" height="75" rx="3"/></g>'+arrow(100,35,110,35)+arrow(190,35,200,35)),
+            ipl: svg('<path d="M20 140H280M20 140V20" '+W+' stroke-opacity=".5"/><path d="M30 120C70 110 100 95 140 80S220 45 270 30" '+W+' stroke-width="3"/><path d="M30 125C70 118 105 100 145 88S220 55 270 38" '+W+' stroke-width="2" stroke-dasharray="5 5" stroke-opacity=".7"/><circle cx="270" cy="30" r="5" fill="#fff"/>')
+        };
+        const PROJECTS = [
+            { id:'britai', badge:'Featured', title:'BritAI', short:'Internal conversational data agent for Britannia that turns plain-language questions into answers, tables and charts.',
+              lead:'A conversational agent that gives Britannia teams direct access to their data.',
+              stack:['OpenAI GPT','Amazon Redshift','PostgreSQL','Python','SQL','Tool Calling'],
+              points:['Built a conversational agent for internal use at Britannia.','Brings together four data sources: internal data, Nielsen, household panel, and media and brand tracking.','Users simply ask a data question in plain language, and the agent fetches the relevant data and returns the results.','Data is retrieved from Amazon Redshift and presented as dataframes, tables, graphs and clear, professional written summaries.','The agent builds SQL queries from the question and diagnoses each query before running it.','A tool-calling mechanism extends the agent beyond plain text generation.','Every interaction between the agent and users is stored in PostgreSQL, so it can be used to improve the agent over time.','OpenAI GPT models power both the conversation and the critical reasoning.'] },
+            { id:'agent', badge:'GenAI', title:'Conversational Steering Agent', short:'Gemini-based agent that handles intent recognition and migrates legacy call center workflows to GCP.',
+              lead:'Accenture | Apr 2025 – Present',
+              stack:['Gemini Flash 2.5','ADK','GCP','Azure','Genesys'],
+              points:['Built a conversational steering agent on Gemini Flash 2.5.','Fine-tuned it by adding labeled examples to the playbook for accurate intent recognition, context handling and business-aligned responses.','Tested with the ADK tool and reached 90% overall accuracy.','Deployed on GCP to replicate and improve legacy call center workflows from Azure and Genesys, with a seamless migration and better scalability.'] },
+            { id:'lapse', badge:'Healthcare', title:'Lapse Patient Analytics', short:'Segmentation and predictive models that identify patients at high risk of lapsing.',
+              lead:'Accenture | Apr 2024 – Feb 2025',
+              stack:['Python','SQL','Segmentation','Machine Learning'],
+              points:['Used segmentation modeling to categorize patient populations and identify high-risk lapse groups from behavioral and demographic data.','Enabled targeted interventions and personalized retention strategies to improve engagement and reduce attrition.','Developed predictive models to identify at-risk patients from historical data and behavioral patterns.','Parameterized code and models so the client can run them independently on new data batches.'] },
+            { id:'store', badge:'Healthcare', title:'Healthcare Feature Store', short:'Parameterized EHR features and cost metrics deployed as Databricks tables.',
+              lead:'Accenture | Sep 2022 – Mar 2024',
+              stack:['PySpark','Spark SQL','Databricks','EHR / FHIR'],
+              points:['Created parameterized features from EHR data, including diagnosis, procedures, claims and labs, that update flexibly with new data.','Developed cost metrics such as admissions per 1000, cost per utilization and PMPM to improve care cost analysis.','Worked with Data Engineering to deploy features as tables in Databricks.','Optimized code logic and automated feature generation.'] },
+            { id:'ipl', badge:'Personal project', title:'IPL Innings Score Prediction', short:'XGBoost model predicting a team\'s final score after 15 overs.',
+              lead:'Machine learning | Databricks',
+              stack:['XGBoost','Python','Databricks'],
+              points:['Developed a model that predicts a cricket team\'s final score after 15 overs, using features from the death overs (16-20).','Performed data cleaning, feature engineering and evaluation using MAE and R².','Deployed the model on Databricks for batch predictions.'] }
+        ];
+        const grid = document.getElementById('projectsGrid');
+        grid.innerHTML = PROJECTS.map(p => `<button class="project-card" data-id="${p.id}" aria-haspopup="dialog"><div class="project-image">${GFX[p.id]}</div><div class="project-content"><span class="badge">${p.badge}</span><h3>${p.title}</h3><p>${p.short}</p><div class="project-tags">${p.stack.slice(0,3).map(t=>`<span>${t}</span>`).join('')}</div><span class="project-more">View details →</span></div></button>`).join('');
+        const modal = document.getElementById('projectModal');
+        let lastFocus;
+        function openProject(id) {
+            const p = PROJECTS.find(x => x.id === id);
+            document.getElementById('modalVisual').innerHTML = GFX[id];
+            document.getElementById('modalTitle').textContent = p.title;
+            document.getElementById('modalLead').textContent = p.lead;
+            document.getElementById('modalOverview').innerHTML = p.points.map(t => `<li>${t}</li>`).join('');
+            document.getElementById('modalStack').innerHTML = p.stack.map(t => `<span>${t}</span>`).join('');
+            lastFocus = document.activeElement;
+            modal.classList.add('open');
+            document.body.classList.add('modal-open');
+            document.getElementById('modalClose').focus();
+        }
+        function closeProject() {
+            modal.classList.remove('open');
+            document.body.classList.remove('modal-open');
+            if (lastFocus) lastFocus.focus();
+        }
+        grid.addEventListener('click', e => { const c = e.target.closest('.project-card'); if (c) openProject(c.dataset.id); });
+        document.getElementById('modalClose').addEventListener('click', closeProject);
+        modal.addEventListener('click', e => { if (e.target === modal) closeProject(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape' && modal.classList.contains('open')) closeProject(); });
+
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
